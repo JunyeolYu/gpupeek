@@ -31,7 +31,7 @@ SRCS = ./src/main.c
 OBJS = $(SRCS:.c=.o)
 
 # Installation directory
-INSTALL_DIR = /usr/local/bin
+INSTALL_DIR = ~/.local/bin
 
 # Default target (install will be executed automatically)
 all: install clean_obj
