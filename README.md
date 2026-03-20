@@ -1,2 +1,3 @@
-# gpustat_lite
-Lightweight NVIDIA GPU monitoring tool
+# gpupeek
+
+GPUPeek is an lightweight NVIDIA GPU monitoring tool

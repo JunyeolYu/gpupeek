@@ -22,7 +22,7 @@ endif
 # Compiler flags
 CFLAGS += -Wall -Wextra -O2 -march=native -mtune=native -flto -funroll-loops
 # Target executable
-TARGET = gpulite
+TARGET = gpupeek
 
 # Source files
 SRCS = ./src/main.c

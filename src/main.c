@@ -1,5 +1,8 @@
+#include <errno.h>
+#include <limits.h>
 #include <ncurses.h>
 #include <nvml.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +45,19 @@ void handleError(nvmlReturn_t result) {
     nvmlShutdown();
     exit(1);
   }
+}
+
+int parse_interval_ms(const char *optarg) {
+  char *end = NULL;
+  errno = 0;
+  int milliseconds = atoi(optarg);
+
+  if (errno != 0 || end == optarg || *end != '\0' || milliseconds < 0) {
+    fprintf(stderr, "Error: invalid interval '%s'\n", optarg);
+    exit(EXIT_FAILURE);
+  }
+
+  return milliseconds;
 }
 
 void displayDeviceInfo(nvmlDevice_t device, int id,
@@ -139,7 +155,7 @@ int main(int argc, char *argv[]) {
   int opt;
   int gpu_ids[MAX_GPUS];
   unsigned selected_device_count;
-  int interval = 1;
+  int interval_ms = 1000;
   bool selected = false;
   bool is_vertical = true;
   char **names = NULL;
@@ -155,7 +171,7 @@ int main(int argc, char *argv[]) {
       selected = true;
       break;
     case 'n':
-      interval = atoi(optarg);
+      interval_ms = parse_interval_ms(optarg);
       break;
     case 'l':
       is_vertical = false;
@@ -165,7 +181,7 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "Usage: %s [options] command\n", argv[0]);
       fprintf(stderr, "Options:\n");
       fprintf(stderr, "  -i Target GPU IDs\n");
-      fprintf(stderr, "  -n seconds to wait between updates\n");
+      fprintf(stderr, "  -n milliseconds to wait between updates\n");
       fprintf(stderr, "  -l Display GPU status in a single horizontal line\n");
       fprintf(stderr, "  -h Show this help\n");
       exit(EXIT_FAILURE);
@@ -179,7 +195,7 @@ int main(int argc, char *argv[]) {
   }
 
   for (i = 0; i < selected_device_count; i++) {
-    if (gpu_ids[i] < 0 && gpu_ids[i] >= (int)device_count) {
+    if (gpu_ids[i] < 0 || gpu_ids[i] >= (int)device_count) {
       fprintf(stderr, "Error: No GPUs were found. ID %d out of range \
                                     (0-%d)\n",
               gpu_ids[i], device_count - 1);
@@ -220,7 +236,7 @@ int main(int argc, char *argv[]) {
     }
 
     refresh();
-    sleep(interval);
+    sleep(interval_ms / 1000);
 
     int ch = getch();
     if (ch == 'q' || ch == 'Q')
